@@ -1,0 +1,22 @@
+{
+  "name": "weavedb-voting",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@chakra-ui/react": "^2.8.2",
+    "ethers": "^6.12.1",
+    "localforage": "^1.10.0",
+    "next": "14.2.3",
+    "ramda": "^0.30.0",
+    "react": "^18",
+    "react-dom": "^18",
+    "weavedb-sdk": "^0.40.2"
+  }
+}
