@@ -7,7 +7,7 @@ import { Web3Provider } from '@ethersproject/providers';
 import React, { useMemo } from 'react';
 
 //تعريف معرف معاملة العقد للتفاعل مع العقد الذكي.
-const contractTxId = "WEAVEDB_CONTRACT_TX_ID";
+const contractTxId = "OtD6vn2WRvTZd7Exw9TSp0p2H0i5_GKbF_gypPzBAf8";
 
 
 //هذا هو المكون الوظيفي الرئيسي للتطبيق اللامركزي. يقوم بإعداد متغيرات الحالة، معالجة التهيئة، وتحديد هيكل واجهة المستخدم.
@@ -27,56 +27,56 @@ export default function VotingDApp() {
 
 
 //جلب قائمة المرشحين من WeaveDB وتحدث الحالة بهذه القائمة. يتم استدعاء هذه الدالة بعد تهيئة قاعدة البيانات لملء قائمة المرشحين.
-  const getCandidates = async () => {
-    if (db) {
-      try {
-        const _candidates = await db.cget("candidates");
-        setCandidates(_candidates);
-      } catch (error) {
-        console.error('Error fetching candidates:', error);
-      }
+const getCandidates = async () => {
+  if (db) {
+    try {
+      const result = await db.get("candidates");
+      setCandidates(result); 
+    } catch (error) {
+      console.error('Error fetching candidates:', error);
     }
-  };
+  }
+};
+
 
 
 //تسترجع جميع الأصوات من قاعدة البيانات وتقوم بتصفية هذه الأصوات لمعرفة ما إذا كان المستخدم الحالي قد صوت بالفعل. يساعد ذلك في منع 
 //التصويت المزدوج من قبل نفس المستخدم.
- const getVoteByUserId = async (userId) => {
-    const result = await db.get("votes");  
-    const userVote = result.find(vote => vote.voter_id === userId);
-    return userVote;
-  };
+const getVoteByUserId = async (userId) => {
+  const result = await db.get("votes");
+  const userVote = result.find(vote => vote.voter_address === userId);
+  return userVote;
+};
 
 
 
 //تسجل تصويتًا للمرشح المحدد
-  const vote = async () => {
-    if (!isNil(selectedCandidate)) {
+const vote = async () => {
+  if (!isNil(selectedCandidate)) {
+    try {
       const existingVote = await getVoteByUserId(user.wallet.toLowerCase());
-      console.log("Existing Vote:", existingVote); // Log existing vote for debugging
       if (existingVote) {
         alert('You have already voted.');
       } else {
-        try {
-          await db.add(
-            {
-              voter_id: user.wallet.toLowerCase(),
-              candidate_id: selectedCandidate,
-              timestamp: Date.now(),
-            },
-            "votes",
-            user
-          );
-          setVoted(true);
-          alert('Your vote has been successfully recorded!');
-        } catch (error) {
-          console.error('Error recording vote:', error);
-          alert('An error occurred while recording your vote. Please try again later.');
-        }
+        await db.add(
+          {
+            voter_address: user.wallet.toLowerCase(),
+            timestamp: Date.now(),
+            candidate_address: selectedCandidate,
+            voted: true
+          },
+          "votes"
+        );
+        setVoted(true);
+        alert('Your vote has been successfully recorded!');
       }
+    } catch (error) {
+      console.error('Error recording vote:', error);
+      alert('An error occurred while recording your vote. Please try again later.');
     }
-  };
-  
+  }
+};
+
   
 //تقوم هذه الدالة بتحديث الحالة بمعلومات محفظة المستخدم عند تسجيل الدخول بنجاح.
 
@@ -181,32 +181,32 @@ export default function VotingDApp() {
 
 
 //يتم تقديم قائمة المرشحين وزر التصويت. يتم تعطيل زر التصويت إذا كان المستخدم قد صوت بالفعل أو إذا لم يتم تحديد مرشح.
-  const CandidateList = () => {
-    const memoizedCandidates = useMemo(() => {
-      return map((candidate) => (
-        <Radio key={candidate.id} value={candidate.id} colorScheme="black">
-          <Flex align="center">
-            <Text mr={5} color="black" fontWeight="bold">{candidate.data.candidate_name}</Text>
-            <Text color="black">{candidate.id}</Text>
-          </Flex>
-        </Radio>
-      ))(candidates);
-    }, [candidates]);
+const CandidateList = () => {
+  const memoizedCandidates = useMemo(() => {
+    return map((candidate) => (
+      <Radio key={candidate.candidate_address} value={candidate.candidate_address} colorScheme="black">
+        <Flex align="center">
+          <Text mr={5} color="black" fontWeight="bold">{candidate.name}</Text>
+          <Text color="black">{candidate.candidate_address}</Text>
+        </Flex>
+      </Radio>
+    ))(candidates);
+  }, [candidates]);
 
-    return (
-      <Box mt={20}>
-        <Heading color="black" mb={5}>Select a candidate to vote:</Heading>
-        <RadioGroup onChange={setSelectedCandidate} value={selectedCandidate} colorScheme="green">        
-          <Stack spacing={3}>
-            {memoizedCandidates}
-          </Stack>
-        </RadioGroup>
-        <Button mt={4} colorScheme="teal" onClick={vote} isDisabled={voted || isNil(selectedCandidate)}>
-          {voted ? <Spinner /> : 'Vote'}
-        </Button>
-      </Box>
-    );
-  };
+  return (
+    <Box mt={20}>
+      <Heading color="black" mb={5}>Select a candidate to vote:</Heading>
+      <RadioGroup onChange={setSelectedCandidate} value={selectedCandidate} colorScheme="green">        
+        <Stack spacing={3}>
+          {memoizedCandidates}
+        </Stack>
+      </RadioGroup>
+      <Button mt={4} colorScheme="teal" onClick={vote} isDisabled={voted || isNil(selectedCandidate)}>
+        {voted ? <Spinner /> : 'Vote'}
+      </Button>
+    </Box>
+  );
+};
 
 
 //يتم تقديم رسالة الشكر بمجرد تسجيل التصويت بنجاح.
